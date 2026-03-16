@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculatrice</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .calculator {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            max-width: 500px;
+        }
+        .display {
+            background-color: #222;
+            color: #0f0;
+            font-size: 32px;
+            text-align: right;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            min-height: 50px;
+            font-family: 'Courier New', monospace;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .btn {
+            width: 100%;
+            height: 60px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #666;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #888;
+        }
+        .btn.operator {
+            background-color: #ff9500;
+        }
+        .btn.function {
+            background-color: #4CAF50;
+        }
+        .btn.number {
+            background-color: #2196F3;
+        }
+        .empty {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <!-- Écran d'affichage -->
+        <div class="display" id="display">0</div>
+        
+        <div class="grid">
+            <!-- Ligne 1 : ( ) % CE -->
+            <div class="empty"></div>
+            <div class="empty"></div>
+            <div class="empty"></div>
+            <button class="btn function">(</button>
+            <button class="btn function">)</button>
+            <button class="btn function">%</button>
+            <button class="btn function">CE</button>
+            
+
+            <!-- Ligne 2 : Inv sin In 7 8 9 / -->
+            <button class="btn function">Inv</button>
+            <button class="btn function">sin</button>
+            <button class="btn function">In</button>
+            <button class="btn number">7</button>
+            <button class="btn number">8</button>
+            <button class="btn number">9</button>
+            <button class="btn operator">/</button>
+
+            <!-- Ligne 3 : n cos log 4 5 6 * -->
+            <button class="btn function">n</button>
+            <button class="btn function">cos</button>
+            <button class="btn function">log</button>
+            <button class="btn number">4</button>
+            <button class="btn number">5</button>
+            <button class="btn number">6</button>
+            <button class="btn operator">*</button>
+
+            <!-- Ligne 4 : e tan √ 3 2 1 - -->
+            <button class="btn function">e</button>
+            <button class="btn function">tan</button>
+            <button class="btn function">√</button>
+            <button class="btn number">3</button>
+            <button class="btn number">2</button>
+            <button class="btn number">1</button>
+            <button class="btn operator">-</button>
+
+            <!-- Ligne 5 : EXP x² x^ . 0 = + -->
+            <button class="btn function">EXP</button>
+            <button class="btn function">x²</button>
+            <button class="btn function">x^</button>
+            <button class="btn number">.</button>
+            <button class="btn number">0</button>
+            <button class="btn operator">=</button>
+            <button class="btn operator">+</button>
+        </div>
+    </div>
+    <script>
+    // Élément d'affichage
+    const display = document.getElementById('display');
+    
+    // Variable stockant l'expression en cours
+    let currentExpression = '0';
+
+    // Met à jour l'affichage
+    function updateDisplay() {
+        display.textContent = currentExpression || '0';
+    }
+
+    // Ajoute une valeur à l'expression
+    function appendToExpression(value) {
+        // Si l'expression est '0' et qu'on ajoute un chiffre ou un point, on remplace
+        if (currentExpression === '0' && !isOperator(value) && value !== 'CE' && value !== '=' && value !== '(' && value !== ')') {
+            if (value === '.') {
+                currentExpression = '0.';
+            } else {
+                currentExpression = value;
+            }
+        } else {
+            // Empêcher deux opérateurs consécutifs (sauf parenthèse)
+            const lastChar = currentExpression.slice(-1);
+            if (isOperator(value) && isOperator(lastChar) && lastChar !== '(' && lastChar !== ')') {
+                // Remplacer le dernier opérateur par le nouveau
+                currentExpression = currentExpression.slice(0, -1) + value;
+            } else {
+                currentExpression += value;
+            }
+        }
+        updateDisplay();
+    }
+
+    // Vérifie si la chaîne est un opérateur (sauf parenthèses)
+    function isOperator(val) {
+        return ['+', '-', '*', '/', '^', '%'].includes(val);
+    }
+
+    // Efface tout
+    function clearAll() {
+        currentExpression = '0';
+        updateDisplay();
+    }
+
+    // Évalue l'expression
+    function calculate() {
+        try {
+            // Préparation de l'expression pour l'évaluation
+            let expr = currentExpression;
+
+            // Remplacer les fonctions par leurs équivalents Math
+            expr = expr.replace(/sin/g, 'Math.sin');
+            expr = expr.replace(/cos/g, 'Math.cos');
+            expr = expr.replace(/tan/g, 'Math.tan');
+            expr = expr.replace(/In/g, 'Math.log');      // Logarithme naturel (In)
+            expr = expr.replace(/log/g, 'Math.log10');   // Logarithme base 10
+            expr = expr.replace(/√/g, 'Math.sqrt');
+            expr = expr.replace(/EXP/g, 'Math.exp');
+            expr = expr.replace(/x²/g, '**2');           // Carré
+            expr = expr.replace(/\^/g, '**');            // Puissance
+            // Remplacer le symbole e (seul) par Math.E (attention aux nombres comme 2e3)
+            expr = expr.replace(/(^|[+\-*/%(])e(?=[+\-*/%)]|$)/g, '$1' + Math.E);
+            // Pour le pourcentage : on le remplace par /100 (ex: 50% devient (50/100))
+            expr = expr.replace(/(\d+)%/g, '($1/100)'); 
+            
+            // Évaluer l'expression
+            const result = eval(expr);
+            
+            // Afficher le résultat (limiter à 10 décimales max)
+            currentExpression = String(parseFloat(result.toFixed(10)));
+        } catch (e) {
+            currentExpression = 'Erreur';
+        }
+        updateDisplay();
+    }
+
+    // Gestionnaire de clic pour tous les boutons
+    document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const value = button.textContent; // Récupère le texte du bouton
+
+            if (value === 'CE') {
+                clearAll();
+            } else if (value === '=') {
+                calculate();
+            } else if (value === 'Inv') {
+                // Pour l'instant, on ignore (fonction inverse)
+                // Pourrait être implémenté ultérieurement
+            } else if (value === 'n') {
+                // Factorielle non implémentée
+            } else {
+                // Pour les autres boutons, on ajoute à l'expression
+                // Gestion spéciale pour les fonctions qui ajoutent une parenthèse ouvrante
+                if (['sin', 'cos', 'tan', 'In', 'log', '√', 'EXP'].includes(value)) {
+                    appendToExpression(value + '(');
+                } else if (value === 'x²') {
+                    appendToExpression('**2');
+                } else if (value === 'x^') {
+                    appendToExpression('^');
+                } else {
+                    appendToExpression(value);
+                }
+            }
+        });
+    });
+
+    // Initialisation
+    updateDisplay();
+</script>
+</body>
+</html>

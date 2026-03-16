@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculateur IMC</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        label { display: inline-block; width: 100px; }
+        input { margin-bottom: 10px; padding: 5px; width: 150px; }
+        button { padding: 8px 15px; background-color: #1d04db; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #00196a; }
+        .resultat { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Calculateur d'IMC</h2>
+        <form id="imcForm">
+            <label for="poids">Poids (kg) :</label>
+            <input type="text" id="poids" ><br>
+            <label for="taille">Taille (m) :</label>
+            <input type="text" id="taille" ><br>
+            <button type="button" onclick="calculerIMC()">Calculer</button>
+        </form>
+        <div id="resultat" class="resultat"></div>
+    </div>
+
+    <script>
+        function calculerIMC() {
+            // Récupérer les valeurs et remplacer la virgule par un point
+            let poidsStr = document.getElementById('poids').value.replace(',', '.');
+            let tailleStr = document.getElementById('taille').value.replace(',', '.');
+            
+            // Convertir en nombres flottants
+            let poids = parseFloat(poidsStr);
+            let taille = parseFloat(tailleStr);
+            
+            // Validation
+            if (isNaN(poids) || isNaN(taille) || poids <= 0 || taille <= 0) {
+                document.getElementById('resultat').innerHTML = "Veuillez entrer des valeurs positives valides.";
+                return;
+            }
+            
+            // Calcul IMC
+            let imc = poids / (taille * taille);
+            
+            // Arrondir à deux décimales
+            imc = Math.round(imc * 100) / 100;
+            
+            // Déterminer la catégorie
+            let categorie = "";
+            if (imc < 18.5) {
+                categorie = "Insuffisance pondérale (maigreur)";
+            } else if (imc < 25) {
+                categorie = "Corpulence normale";
+            } else if (imc < 30) {
+                categorie = "Surpoids";
+            } else if (imc < 35) {
+                categorie = "Obésité modérée";
+            } else if (imc < 40) {
+                categorie = "Obésité sévère";
+            } else {
+                categorie = "Obésité morbide ou massive";
+            }
+            
+            // Afficher le résultat
+            document.getElementById('resultat').innerHTML = 
+                `Votre IMC est de ${imc}. Vous êtes en état d'${categorie.toLowerCase()}.`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Permutation de texte</title>
+</head>
+<body>
+    <h2>Exercice 1 : Permutation</h2>
+    <form>
+        <label>Zone de texte 1 :</label>
+        <input type="text" id="texte1" ><br><br>
+        <label>Zone de texte 2 :</label>
+        <input type="text" id="texte2" ><br><br>
+        <button type="button" onclick="permuter()">Permuter</button>
+    </form>
+
+    <script>
+        function permuter() {
+            // Récupération des deux champs
+            const champ1 = document.getElementById('texte1');
+            const champ2 = document.getElementById('texte2');
+
+            // Échange des valeurs
+            const temp = champ1.value;
+            champ1.value = champ2.value;
+            champ2.value = temp;
+        }
+    </script>
+</body>
+</html>

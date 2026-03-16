@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculatrice Simple</title>
+</head>
+<body>
+    <h2>Exercice 2 : Calculatrice Simple</h2>
+    <form>
+        <label>Nombre 1 :</label>
+        <input type="number" id="nb1"><br><br>
+        <label>Nombre 2 :</label>
+        <input type="number" id="nb2"><br><br>
+        
+        <input type="button" value="+" onclick="addition()">
+        <input type="button" value="-" onclick="soustraction()">
+        <input type="button" value="*" onclick="multiplication()">
+        <input type="button" value="/" onclick="division()">
+        <br/><br/>
+        
+        <label>Résultat :</label>
+        <input type="text" id="result" readonly>
+    </form>
+
+    <script>
+        function addition() {
+            const nb1 = parseFloat(document.getElementById('nb1').value);
+            const nb2 = parseFloat(document.getElementById('nb2').value);
+            const resultat = nb1 + nb2;
+            document.getElementById('result').value = resultat;
+        }
+
+        function soustraction() {
+            const nb1 = parseFloat(document.getElementById('nb1').value);
+            const nb2 = parseFloat(document.getElementById('nb2').value);
+            const resultat = nb1 - nb2;
+            document.getElementById('result').value = resultat;
+        }
+
+        function multiplication() {
+            const nb1 = parseFloat(document.getElementById('nb1').value);
+            const nb2 = parseFloat(document.getElementById('nb2').value);
+            const resultat = nb1 * nb2;
+            document.getElementById('result').value = resultat;
+        }
+
+        function division() {
+            const nb1 = parseFloat(document.getElementById('nb1').value);
+            const nb2 = parseFloat(document.getElementById('nb2').value);
+            if (nb2 === 0) {
+                document.getElementById('result').value = 'Erreur : division par zéro';
+            } else {
+                const resultat = nb1 / nb2;
+                document.getElementById('result').value = resultat;
+            }
+        }
+    </script>
+</body>
+</html>
