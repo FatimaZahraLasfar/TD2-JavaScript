@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Calculatrice</title>
+    <title>Calculatrice scientifique</title>
     <style>
         body {
             display: flex;
@@ -29,6 +29,7 @@
             border-radius: 5px;
             min-height: 50px;
             font-family: 'Courier New', monospace;
+            word-wrap: break-word;
         }
         .grid {
             display: grid;
@@ -58,6 +59,9 @@
         .btn.number {
             background-color: #2196F3;
         }
+        .btn.inv-active {
+            background-color: #ffaa00;  /* Indicateur visuel pour le mode Inv */
+        }
         .empty {
             visibility: hidden;
         }
@@ -65,9 +69,7 @@
 </head>
 <body>
     <div class="calculator">
-        <!-- Écran d'affichage -->
         <div class="display" id="display">0</div>
-        
         <div class="grid">
             <!-- Ligne 1 : ( ) % CE -->
             <div class="empty"></div>
@@ -77,10 +79,9 @@
             <button class="btn function">)</button>
             <button class="btn function">%</button>
             <button class="btn function">CE</button>
-            
 
             <!-- Ligne 2 : Inv sin In 7 8 9 / -->
-            <button class="btn function">Inv</button>
+            <button class="btn function" id="invBtn">Inv</button>
             <button class="btn function">sin</button>
             <button class="btn function">In</button>
             <button class="btn number">7</button>
@@ -116,115 +117,167 @@
             <button class="btn operator">+</button>
         </div>
     </div>
+
     <script>
-    // Élément d'affichage
-    const display = document.getElementById('display');
-    
-    // Variable stockant l'expression en cours
-    let currentExpression = '0';
+        // Élément d'affichage
+        const display = document.getElementById('display');
+        
+        // Expression en cours
+        let currentExpression = '0';
+        // Mode inverse (Inv)
+        let invMode = false;
 
-    // Met à jour l'affichage
-    function updateDisplay() {
-        display.textContent = currentExpression || '0';
-    }
-
-    // Ajoute une valeur à l'expression
-    function appendToExpression(value) {
-        // Si l'expression est '0' et qu'on ajoute un chiffre ou un point, on remplace
-        if (currentExpression === '0' && !isOperator(value) && value !== 'CE' && value !== '=' && value !== '(' && value !== ')') {
-            if (value === '.') {
-                currentExpression = '0.';
-            } else {
-                currentExpression = value;
-            }
-        } else {
-            // Empêcher deux opérateurs consécutifs (sauf parenthèse)
-            const lastChar = currentExpression.slice(-1);
-            if (isOperator(value) && isOperator(lastChar) && lastChar !== '(' && lastChar !== ')') {
-                // Remplacer le dernier opérateur par le nouveau
-                currentExpression = currentExpression.slice(0, -1) + value;
-            } else {
-                currentExpression += value;
-            }
+        // Met à jour l'affichage
+        function updateDisplay() {
+            display.textContent = currentExpression || '0';
         }
-        updateDisplay();
-    }
 
-    // Vérifie si la chaîne est un opérateur (sauf parenthèses)
-    function isOperator(val) {
-        return ['+', '-', '*', '/', '^', '%'].includes(val);
-    }
-
-    // Efface tout
-    function clearAll() {
-        currentExpression = '0';
-        updateDisplay();
-    }
-
-    // Évalue l'expression
-    function calculate() {
-        try {
-            // Préparation de l'expression pour l'évaluation
-            let expr = currentExpression;
-
-            // Remplacer les fonctions par leurs équivalents Math
-            expr = expr.replace(/sin/g, 'Math.sin');
-            expr = expr.replace(/cos/g, 'Math.cos');
-            expr = expr.replace(/tan/g, 'Math.tan');
-            expr = expr.replace(/In/g, 'Math.log');      // Logarithme naturel (In)
-            expr = expr.replace(/log/g, 'Math.log10');   // Logarithme base 10
-            expr = expr.replace(/√/g, 'Math.sqrt');
-            expr = expr.replace(/EXP/g, 'Math.exp');
-            expr = expr.replace(/x²/g, '**2');           // Carré
-            expr = expr.replace(/\^/g, '**');            // Puissance
-            // Remplacer le symbole e (seul) par Math.E (attention aux nombres comme 2e3)
-            expr = expr.replace(/(^|[+\-*/%(])e(?=[+\-*/%)]|$)/g, '$1' + Math.E);
-            // Pour le pourcentage : on le remplace par /100 (ex: 50% devient (50/100))
-            expr = expr.replace(/(\d+)%/g, '($1/100)'); 
-            
-            // Évaluer l'expression
-            const result = eval(expr);
-            
-            // Afficher le résultat (limiter à 10 décimales max)
-            currentExpression = String(parseFloat(result.toFixed(10)));
-        } catch (e) {
-            currentExpression = 'Erreur';
+        // Vérifie si une chaîne est un opérateur (sauf parenthèses)
+        function isOperator(val) {
+            return ['+', '-', '*', '/', '^', '%'].includes(val);
         }
-        updateDisplay();
-    }
 
-    // Gestionnaire de clic pour tous les boutons
-    document.querySelectorAll('.btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const value = button.textContent; // Récupère le texte du bouton
-
-            if (value === 'CE') {
-                clearAll();
-            } else if (value === '=') {
-                calculate();
-            } else if (value === 'Inv') {
-                // Pour l'instant, on ignore (fonction inverse)
-                // Pourrait être implémenté ultérieurement
-            } else if (value === 'n') {
-                // Factorielle non implémentée
-            } else {
-                // Pour les autres boutons, on ajoute à l'expression
-                // Gestion spéciale pour les fonctions qui ajoutent une parenthèse ouvrante
-                if (['sin', 'cos', 'tan', 'In', 'log', '√', 'EXP'].includes(value)) {
-                    appendToExpression(value + '(');
-                } else if (value === 'x²') {
-                    appendToExpression('**2');
-                } else if (value === 'x^') {
-                    appendToExpression('^');
+        // Ajoute une valeur à l'expression
+        function appendToExpression(value) {
+            // Si l'expression est '0' et qu'on ajoute un chiffre ou un point, on remplace
+            if (currentExpression === '0' && !isOperator(value) && value !== 'CE' && value !== '=' && value !== '(' && value !== ')') {
+                if (value === '.') {
+                    currentExpression = '0.';
                 } else {
-                    appendToExpression(value);
+                    currentExpression = value;
+                }
+            } else {
+                // Empêcher deux opérateurs consécutifs (sauf parenthèse)
+                const lastChar = currentExpression.slice(-1);
+                if (isOperator(value) && isOperator(lastChar) && lastChar !== '(' && lastChar !== ')') {
+                    // Remplacer le dernier opérateur par le nouveau
+                    currentExpression = currentExpression.slice(0, -1) + value;
+                } else {
+                    currentExpression += value;
                 }
             }
-        });
-    });
+            updateDisplay();
+        }
 
-    // Initialisation
-    updateDisplay();
-</script>
+        // Efface tout
+        function clearAll() {
+            currentExpression = '0';
+            updateDisplay();
+        }
+
+        // Fonction factorielle (pour les entiers naturels)
+        window.factorial = function(n) {
+            n = parseFloat(n);
+            if (isNaN(n)) return NaN;
+            if (!Number.isInteger(n) || n < 0) return NaN; // factorielle définie pour les entiers ≥ 0
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        };
+
+        // Évalue l'expression
+        function calculate() {
+            try {
+                let expr = currentExpression;
+
+                // Remplacer les factorielles : nombre ou (expression) suivi de !
+                expr = expr.replace(/(\d+\.?\d*)!/g, 'factorial($1)');
+                expr = expr.replace(/\(([^()]+)\)!/g, 'factorial($1)');
+
+                // Remplacer les fonctions inverses (doivent être traitées avant les normales)
+                expr = expr.replace(/asin\(/g, 'Math.asin(');
+                expr = expr.replace(/acos\(/g, 'Math.acos(');
+                expr = expr.replace(/atan\(/g, 'Math.atan(');
+                expr = expr.replace(/exp\(/g, 'Math.exp(');
+                expr = expr.replace(/pow10\(/g, 'Math.pow(10,');
+
+                // Remplacer les fonctions normales
+                expr = expr.replace(/sin\(/g, 'Math.sin(');
+                expr = expr.replace(/cos\(/g, 'Math.cos(');
+                expr = expr.replace(/tan\(/g, 'Math.tan(');
+                expr = expr.replace(/In\(/g, 'Math.log(');      // Logarithme naturel
+                expr = expr.replace(/log\(/g, 'Math.log10(');   // Logarithme base 10
+                expr = expr.replace(/√\(/g, 'Math.sqrt(');
+                expr = expr.replace(/EXP\(/g, 'Math.exp(');
+                expr = expr.replace(/x²/g, '**2');              // Carré
+                expr = expr.replace(/\^/g, '**');               // Puissance
+
+                // Remplacer le symbole e (seul) par Math.E (attention aux notations comme 2e3)
+                expr = expr.replace(/(^|[+\-*/%(])e(?=[+\-*/%)]|$)/g, '$1' + Math.E);
+                // Pour le pourcentage : 50% devient (50/100)
+                expr = expr.replace(/(\d+)%/g, '($1/100)');
+
+                const result = eval(expr);
+                // Limiter l'affichage à 10 décimales
+                currentExpression = String(parseFloat(result.toFixed(10)));
+            } catch (e) {
+                currentExpression = 'Erreur';
+            }
+            updateDisplay();
+        }
+
+        // Gestionnaire de clic pour tous les boutons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const value = button.textContent;
+
+                if (value === 'CE') {
+                    clearAll();
+                } else if (value === '=') {
+                    calculate();
+                } else if (value === 'Inv') {
+                    // Bascule du mode inverse
+                    invMode = !invMode;
+                    button.classList.toggle('inv-active', invMode);
+                } else if (value === 'n') {
+                    // Factorielle : on ajoute "!" seulement si le dernier caractère est un chiffre ou une parenthèse fermante
+                    const lastChar = currentExpression.slice(-1);
+                    if (lastChar.match(/\d/) || lastChar === ')') {
+                        currentExpression += '!';
+                        updateDisplay();
+                    }
+                } else {
+                    // Pour les autres boutons (chiffres, opérateurs, fonctions)
+                    // Liste des fonctions qui peuvent être affectées par le mode Inv
+                    if (['sin', 'cos', 'tan', 'In', 'log', '√', 'x²', 'EXP'].includes(value)) {
+                        let func = value;
+                        if (invMode) {
+                            // Inverser la fonction selon le mode
+                            switch (value) {
+                                case 'sin': func = 'asin'; break;
+                                case 'cos': func = 'acos'; break;
+                                case 'tan': func = 'atan'; break;
+                                case 'In': func = 'exp'; break;      // ln -> e^x
+                                case 'log': func = 'pow10'; break;   // log10 -> 10^x
+                                case '√': func = 'x²'; break;        // racine -> carré
+                                case 'x²': func = '√'; break;        // carré -> racine
+                                case 'EXP': func = 'In'; break;      // e^x -> ln
+                            }
+                        }
+                        // Ajouter la représentation appropriée
+                        if (func === 'x²') {
+                            appendToExpression('**2');
+                        } else if (func === '√') {
+                            appendToExpression('√(');
+                        } else if (func === 'pow10') {
+                            appendToExpression('pow10(');
+                        } else {
+                            appendToExpression(func + '(');
+                        }
+                    } else if (value === 'x^') {
+                        appendToExpression('^');
+                    } else {
+                        // Chiffres, opérateurs, parenthèses, point, e, etc.
+                        appendToExpression(value);
+                    }
+                }
+            });
+        });
+
+        // Initialisation
+        updateDisplay();
+    </script>
 </body>
 </html>
